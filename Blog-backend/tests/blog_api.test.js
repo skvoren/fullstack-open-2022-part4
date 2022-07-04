@@ -84,6 +84,26 @@ test('blog with valid data can be added', async () => {
     )
 })
 
+test('if like property missed, sets 0 by default', async () => {
+    const newBlog = (
+        {
+            author: 'Michael Schumacher'
+        }
+    )
+
+    await api
+        .post('/api/create')
+        .send(newBlog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1)
+
+    const likesAtLastBlog = blogsAtEnd[blogsAtEnd.length - 1].likes
+    expect(likesAtLastBlog).toBe(0)
+})
+
 afterAll(() => {
     mongoose.connection.close()
 })

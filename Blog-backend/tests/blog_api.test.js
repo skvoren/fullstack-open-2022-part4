@@ -37,6 +37,14 @@ test('specific blog are returned correctly', async () => {
     expect(author).toContain('Vladislav Zed')
 })
 
+test('unique id returned correctly', async () => {
+    const response = await api.get('/api/get-all')
+
+    const id = response.body.map(i => i.id)
+
+    expect(id).toBeDefined()
+})
+
 test('blog without field cannot be created', async () => {
     const newBlog = new Blog(
         {

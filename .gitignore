@@ -1,3 +1,4 @@
 .idea
 /Blog-backend/node_modules/
 /Blog-backend/.env
+/Blog-backend/coverage

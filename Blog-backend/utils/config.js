@@ -1,4 +1,4 @@
-const {config} = require("dotenv");
+const {config} = require('dotenv')
 require('dotenv').config()
 
 const PORT = process.env.PORT

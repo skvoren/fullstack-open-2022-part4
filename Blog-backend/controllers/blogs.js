@@ -2,7 +2,7 @@ const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
 const {request, response} = require('express')
 const {errorHandler} = require('../utils/middleware')
-const {toJSON} = require("lodash/seq");
+const {toJSON} = require('lodash/seq')
 
 blogsRouter.get('/blogs', async (request, response) => {
 	const blogs = await Blog.find({})
@@ -30,6 +30,21 @@ blogsRouter.get('/blogs/:id', async (request, response) => {
 	} else {
 		response.status(404).end()
 	}
+})
+
+blogsRouter.put('/blogs/:id', async (request, response) => {
+	const body = request.body
+
+	const blog = {
+		author: body.author,
+		title: body.title,
+		url: body.url,
+		likes: body.likes
+	}
+
+	const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, {new: true})
+	response.json(updatedBlog)
+
 })
 
 blogsRouter.delete('/blogs/:id', async (request, response) => {

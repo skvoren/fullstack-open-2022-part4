@@ -138,6 +138,36 @@ describe('checks blog can be deleted correctly', () => {
 	})
 })
 
+describe('check blog can be update correctly', () => {
+	test('succeeds with status 204 if id is valid', async () => {
+		const blogsAtStart = await helper.blogsInDb()
+		const blogToUpdate = blogsAtStart[0]
+		const updatedBlog = (
+			{
+				author: 'Artem Bugaev',
+				url: blogToUpdate.url,
+				title: blogToUpdate.title,
+				likes: blogToUpdate.likes
+			}
+		)
+
+		await api
+			.put(`/api/blogs/${blogToUpdate.id}`)
+			.send(updatedBlog)
+			.expect(200)
+
+		const blogsAtEnd = await helper.blogsInDb()
+
+		expect(blogsAtEnd).toHaveLength(blogsAtStart.length)
+
+		const authorAtEnd = blogsAtEnd[0].author
+
+		const authorsAtStart = blogsAtStart.map(b => b.author)
+
+		expect(authorsAtStart).not.toContain(authorAtEnd)
+	})
+})
+
 afterAll(() => {
 	mongoose.connection.close()
 })

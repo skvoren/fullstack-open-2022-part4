@@ -1,8 +1,5 @@
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
-const {request, response} = require('express')
-const {errorHandler} = require('../utils/middleware')
-const {toJSON} = require('lodash/seq')
 
 blogsRouter.get('/blogs', async (request, response) => {
 	const blogs = await Blog.find({})

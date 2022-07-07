@@ -65,3 +65,65 @@ describe('checks at least one user in db', () => {
         expect(usersAtEnd).toEqual(usersAtStart)
     })
 })
+
+describe('checks validation for user creation', () => {
+    test('return status 400 if user length incorrect', async () => {
+        const userWithIncorrectUsername = ({
+            username: 'ru',
+            name: 'Vladislav',
+            password: 'admin123!'
+        })
+
+        const result = await api
+            .post('/api/users')
+            .send(userWithIncorrectUsername)
+            .expect(400)
+    })
+
+    test('return status 400 if password-length incorrect', async () => {
+        const userWithIncorrectPassword = (
+            {
+                username: 'ladannik',
+                name: 'Vlad',
+                password: 'av'
+            }
+        )
+
+        const result = await api
+            .post('/api/users')
+            .send(userWithIncorrectPassword)
+            .expect(400)
+
+        expect(result.body.error).toContain('password must be valid')
+    })
+
+    test('return 400 if username empty', async () => {
+        const incorrectUserWithoutUsername = (
+            {
+                name: 'Vlad',
+                password: 'admin123!'
+            }
+        )
+
+        await api
+            .post('/api/users')
+            .send(incorrectUserWithoutUsername)
+            .expect(400)
+    })
+
+    test('return 400 if password empty', async () => {
+        const incorrectUserWithoutPassword = (
+            {
+                name: 'Vlad',
+                username: 'recurro',
+            }
+        )
+
+        const result = await api
+            .post('/api/users')
+            .send(incorrectUserWithoutPassword)
+            .expect(400)
+
+        expect(result.body.error).toContain('password must be filled')
+    })
+})

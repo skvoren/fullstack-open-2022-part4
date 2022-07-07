@@ -1,7 +1,6 @@
 const usersRouter = require('express').Router()
 const User = require('../models/user')
 const bcrypt = require('bcrypt')
-const {request, response} = require("express");
 
 usersRouter.get('/users', async (request, response) => {
     const users = await User.find({})
@@ -15,6 +14,16 @@ usersRouter.post('/users', async (request, response) => {
     if (existingUser) {
         return response.status(400)
             .json({error: 'username must be unique'})
+    }
+
+    if (!password) {
+        return response.status(400)
+            .json({error: 'password must be filled'})
+    }
+
+    if (password.length < 4) {
+        return response.status(400)
+            .json({error: 'password must be valid'})
     }
 
     const saltRounds = 10

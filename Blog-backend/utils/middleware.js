@@ -32,7 +32,7 @@ const errorHandler = (error, request, response, next) => {
 	next(error)
 }
 
-const tokenExtractor = (request, response, next) => {
+const userExtractor = (request, response, next) => {
 	const getTokenFrom = request => {
 		const auth = request.get('authorization')
 		if (auth && auth.toLowerCase().startsWith('bearer ')) {
@@ -47,7 +47,8 @@ const tokenExtractor = (request, response, next) => {
 		return response.status(401).json({error: 'token missing or invalid'})
 	}
 
-	request.token = decodedToken
+	request.user = decodedToken.id
+
 	next()
 }
 
@@ -55,5 +56,5 @@ module.exports = {
 	reqLogger,
 	unknownEndpoint,
 	errorHandler,
-	tokenExtractor
+	userExtractor
 }

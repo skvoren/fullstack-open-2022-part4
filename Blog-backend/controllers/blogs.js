@@ -1,8 +1,6 @@
 const jwt = require('jsonwebtoken')
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
-const User = require('../models/user')
-const {SECRET} = require("../utils/config");
 
 blogsRouter.get('/', async (request, response) => {
 	const blogs = await Blog.find({}).populate('user', { username: 1, name: 1})
@@ -11,13 +9,13 @@ blogsRouter.get('/', async (request, response) => {
 
 blogsRouter.post('/', async (request, response) => {
 	const body = request.body
-	const user = await User.findById(request.token.id)
+	const userId = request.userId
 	const blog = new Blog({
 		author: body.author,
 		title: body.title,
 		url: body.url,
 		likes: body.likes,
-		user: user._id
+		user: userId
 	})
 
 	const savedBlog = await blog.save()
@@ -52,14 +50,19 @@ blogsRouter.put('/:id', async (request, response) => {
 })
 
 blogsRouter.delete('/:id', async (request, response) => {
-	const userId = request.token.id
+	const userId = request.user
 	const blog = await Blog.findById(request.params.id)
-	if (blog.user.toString() === userId.toString()) {
-		await Blog.findByIdAndRemove(request.params.id)
-		response.status(201).end()
+	if (blog) {
+		if (blog.user.toString() === userId.toString()) {
+			await Blog.findByIdAndRemove(request.params.id)
+			response.status(201).json(`${blog.title} deleted`)
+		} else {
+			response.status(403).end()
+		}
 	} else {
-		response.status(403).end()
+		response.status(404).end()
 	}
+
 
 })
 

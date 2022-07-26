@@ -3,30 +3,56 @@ const mongoose = require('mongoose')
 const helper = require('./test_helper')
 const app = require('../app')
 const api = supertest(app)
-
+const login = require('../controllers/login')
 const Blog = require('../models/blog')
+const {TEST_USERNAME, TEST_PASSWORD} = require("../utils/config");
 
 beforeEach(async () => {
 	await Blog.deleteMany({})
 	await Blog.insertMany(helper.initialBlogs)
+	const userForm = ({
+		username: TEST_USERNAME,
+		password: TEST_PASSWORD
+	})
+
+	await api
+		.post('/api/users')
+		.send(userForm)
+
+	const loginForm = ({
+		username: TEST_USERNAME,
+		password: TEST_PASSWORD
+	})
+	const response = await api
+		.post('/api/login')
+		.send(loginForm)
+
+	token = response.body.token
 })
+
+let token = ''
 
 describe('checks get all blogs works correctly', () => {
 	test('blogs are returned as json', async () => {
 		await api
 			.get('/api/blogs')
+			.set('Authorization', `Bearer ${token}`)
 			.expect(200)
 			.expect('Content-Type', /application\/json/)
 	})
 
 	test('all blogs are returned', async () => {
-		const response = await api.get('/api/blogs')
+		const response = await api
+			.get('/api/blogs')
+			.set('Authorization', `Bearer ${token}`)
 
 		expect(response.body).toHaveLength(helper.initialBlogs.length)
 	})
 
 	test('specific blog are returned correctly', async () => {
-		const response = await api.get('/api/blogs')
+		const response = await api
+			.get('/api/blogs')
+			.set('Authorization', `Bearer ${token}`)
 
 		const author = response.body.map(i => i.author)
 
@@ -34,7 +60,9 @@ describe('checks get all blogs works correctly', () => {
 	})
 
 	test('unique id returned correctly', async () => {
-		const response = await api.get('/api/blogs')
+		const response = await api
+			.get('/api/blogs')
+			.set('Authorization', `Bearer ${token}`)
 
 		const id = response.body.map(i => i.id)
 
@@ -50,6 +78,7 @@ describe('get specific blog via id', () => {
 
 		const resultBlog = await api
 			.get(`/api/blogs/${blogToView.id}`)
+			.set('Authorization', `Bearer ${token}`)
 			.expect(200)
 			.expect('Content-Type', /application\/json/)
 
@@ -63,6 +92,7 @@ describe('get specific blog via id', () => {
 
 		await api
 			.get(`/api/blogs/${validNonExistingId}`)
+			.set('Authorization', `Bearer ${token}`)
 			.expect(404)
 	})
 
@@ -71,6 +101,7 @@ describe('get specific blog via id', () => {
 
 		await api
 			.get(`/api/blogs/${invalidId}`)
+			.set('Authorization', `Bearer ${token}`)
 			.expect(400)
 	})
 })
@@ -88,6 +119,7 @@ describe('checks blog can be created correctly', () => {
 
 		await api
 			.post('/api/blogs')
+			.set('Authorization', `Bearer ${token}`)
 			.send(newBlog)
 			.expect(201)
 			.expect('Content-Type', /application\/json/)
@@ -110,6 +142,7 @@ describe('checks blog can be created correctly', () => {
 
 		await api
 			.post('/api/blogs')
+			.set('Authorization', `Bearer ${token}`)
 			.send(newBlog)
 			.expect(400)
 
@@ -126,6 +159,7 @@ describe('checks blog can be deleted correctly', () => {
 
 		await api
 			.delete(`/api/blogs/${blogToDelete.id}`)
+			.set('Authorization', `Bearer ${token}`)
 			.expect(204)
 
 		const blogsAtEnd = await helper.blogsInDb()
@@ -153,6 +187,7 @@ describe('check blog can be update correctly', () => {
 
 		await api
 			.put(`/api/blogs/${blogToUpdate.id}`)
+			.set('Authorization', `Bearer ${token}`)
 			.send(updatedBlog)
 			.expect(200)
 
@@ -168,6 +203,6 @@ describe('check blog can be update correctly', () => {
 	})
 })
 
-afterAll(() => {
+afterAll(async () => {
 	mongoose.connection.close()
 })
